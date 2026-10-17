@@ -1,0 +1,39 @@
+{
+  "dim_partner": [
+    "partner_id",
+    "partner_name",
+    "region",
+    "segment"
+  ],
+  "dim_product": [
+    "product_id",
+    "product_name",
+    "category"
+  ],
+  "dim_date": [
+    "date",
+    "year",
+    "month"
+  ],
+  "fact_orders": [
+    "line_id",
+    "order_id",
+    "order_date",
+    "partner_id",
+    "product_id",
+    "quantity",
+    "unit_price_cents",
+    "status",
+    "due_date",
+    "received_quantity",
+    "on_time_quantity",
+    "last_received_date",
+    "amount_cents",
+    "open_quantity",
+    "open_cents",
+    "due_eligible",
+    "otif",
+    "lead_days",
+    "overdue_cents"
+  ]
+}

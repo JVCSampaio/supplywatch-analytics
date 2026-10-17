@@ -1,0 +1,17 @@
+{
+  "as_of": "2025-12-31",
+  "source_rows": 4926,
+  "rejected_rows": 7,
+  "rejected_rate": 0.0014210312626877792,
+  "published_rows": 1800,
+  "status": "passed",
+  "threshold": 0.03,
+  "source_sha256": {
+    "events.json": "ec044b0163c89374ebb59edb6eafdc98453d1e6b2c22338d2a39739dc9be0843",
+    "orders.csv": "364c8534887841e5903113c537b0c4d9c58a0f72d70f4341690571dc6702216c",
+    "partners.xlsx": "bbe11f33ef6614b332c27fc86d15a1e81c64c88b195693f086121c7a39292519",
+    "products.csv": "eadfdb36cdac67191fb573865d1df3676f2e2114a987afc3a4aae54dd8247412"
+  },
+  "events_mode": "file",
+  "events_sha256": "fcc533fe0106bca0b11023c6824688c0e966e092a7176398ec331dcc38222a79"
+}

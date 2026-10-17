@@ -1,0 +1,10 @@
+{
+  "parser": "Microsoft.AnalysisServices 19.118.3",
+  "tmdl_parse": "passed",
+  "tables": 4,
+  "relationships": 3,
+  "measures": 9,
+  "dax_execution": "not_run",
+  "power_query_execution": "not_run",
+  "desktop_visual_validation": "not_run"
+}

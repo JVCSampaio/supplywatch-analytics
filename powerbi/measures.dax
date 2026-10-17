@@ -1,0 +1,17 @@
+Valor contratado = DIVIDE(SUM(fact_orders[amount_cents]), 100)
+
+Saldo em aberto = DIVIDE(SUM(fact_orders[open_cents]), 100)
+
+Saldo vencido = DIVIDE(SUM(fact_orders[overdue_cents]), 100)
+
+Linhas elegíveis = SUM(fact_orders[due_eligible])
+
+Linhas OTIF = SUM(fact_orders[otif])
+
+OTIF % = DIVIDE([Linhas OTIF], [Linhas elegíveis])
+
+Lead time completo = AVERAGE(fact_orders[lead_days])
+
+Pedidos ativos = CALCULATE(DISTINCTCOUNT(fact_orders[order_id]), KEEPFILTERS(fact_orders[status] = "ordered"))
+
+Participação fornecedor % = DIVIDE([Valor contratado], CALCULATE([Valor contratado], ALLSELECTED(dim_partner)))

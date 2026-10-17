@@ -1,0 +1,29 @@
+name: Data quality and app tests
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: ruff check .
+      - run: python -m analytics.pipeline
+      - run: pytest -q
+      - uses: actions/upload-artifact@v4
+        with:
+          name: quality-and-analysis
+          path: reports/runtime/
+  powerbi-model:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - run: dotnet run --project tools/pbi-validator -- .

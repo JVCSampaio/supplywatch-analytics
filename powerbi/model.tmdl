@@ -1,0 +1,277 @@
+createOrReplace
+
+	model Model
+		culture: pt-BR
+		defaultPowerBIDataSourceVersion: powerBI_V3
+		sourceQueryCulture: en-US
+
+		expression DataFolder = "C:/dados/supplywatch-analytics/data/exports" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+
+		table dim_partner
+
+			column partner_id
+				dataType: string
+				summarizeBy: none
+				sourceColumn: partner_id
+				isHidden
+				isKey
+
+			column partner_name
+				dataType: string
+				summarizeBy: none
+				sourceColumn: partner_name
+
+			column region
+				dataType: string
+				summarizeBy: none
+				sourceColumn: region
+
+			column segment
+				dataType: string
+				summarizeBy: none
+				sourceColumn: segment
+
+			partition dim_partner = m
+				mode: import
+				source =
+					let
+					    Raw = Csv.Document(File.Contents(DataFolder & "/dim_partner.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					    Headers = Table.PromoteHeaders(Raw, [PromoteAllScalars=true]),
+					    Nulls = Table.ReplaceValue(Headers, "", null, Replacer.ReplaceValue, Table.ColumnNames(Headers)),
+					    Typed = Table.TransformColumnTypes(Nulls, {{"partner_id", type text}, {"partner_name", type text}, {"region", type text}, {"segment", type text}}, "en-US")
+					in
+					    Typed
+
+		table dim_product
+
+			column product_id
+				dataType: string
+				summarizeBy: none
+				sourceColumn: product_id
+				isHidden
+				isKey
+
+			column product_name
+				dataType: string
+				summarizeBy: none
+				sourceColumn: product_name
+
+			column category
+				dataType: string
+				summarizeBy: none
+				sourceColumn: category
+
+			partition dim_product = m
+				mode: import
+				source =
+					let
+					    Raw = Csv.Document(File.Contents(DataFolder & "/dim_product.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					    Headers = Table.PromoteHeaders(Raw, [PromoteAllScalars=true]),
+					    Nulls = Table.ReplaceValue(Headers, "", null, Replacer.ReplaceValue, Table.ColumnNames(Headers)),
+					    Typed = Table.TransformColumnTypes(Nulls, {{"product_id", type text}, {"product_name", type text}, {"category", type text}}, "en-US")
+					in
+					    Typed
+
+		table dim_date
+
+			column date
+				dataType: dateTime
+				summarizeBy: none
+				sourceColumn: date
+				formatString: dd/MM/yyyy
+				isKey
+
+			column year
+				dataType: int64
+				summarizeBy: none
+				sourceColumn: year
+
+			column month
+				dataType: string
+				summarizeBy: none
+				sourceColumn: month
+
+			partition dim_date = m
+				mode: import
+				source =
+					let
+					    Raw = Csv.Document(File.Contents(DataFolder & "/dim_date.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					    Headers = Table.PromoteHeaders(Raw, [PromoteAllScalars=true]),
+					    Nulls = Table.ReplaceValue(Headers, "", null, Replacer.ReplaceValue, Table.ColumnNames(Headers)),
+					    Typed = Table.TransformColumnTypes(Nulls, {{"date", type date}, {"year", Int64.Type}, {"month", type text}}, "en-US")
+					in
+					    Typed
+
+		table fact_orders
+
+			column line_id
+				dataType: string
+				summarizeBy: none
+				sourceColumn: line_id
+
+			column order_id
+				dataType: string
+				summarizeBy: none
+				sourceColumn: order_id
+
+			column order_date
+				dataType: dateTime
+				summarizeBy: none
+				sourceColumn: order_date
+				formatString: dd/MM/yyyy
+
+			column partner_id
+				dataType: string
+				summarizeBy: none
+				sourceColumn: partner_id
+				isHidden
+
+			column product_id
+				dataType: string
+				summarizeBy: none
+				sourceColumn: product_id
+				isHidden
+
+			column quantity
+				dataType: int64
+				summarizeBy: none
+				sourceColumn: quantity
+
+			column unit_price_cents
+				dataType: int64
+				summarizeBy: none
+				sourceColumn: unit_price_cents
+				isHidden
+
+			column status
+				dataType: string
+				summarizeBy: none
+				sourceColumn: status
+
+			column due_date
+				dataType: dateTime
+				summarizeBy: none
+				sourceColumn: due_date
+				formatString: dd/MM/yyyy
+
+			column received_quantity
+				dataType: int64
+				summarizeBy: none
+				sourceColumn: received_quantity
+
+			column on_time_quantity
+				dataType: int64
+				summarizeBy: none
+				sourceColumn: on_time_quantity
+
+			column last_received_date
+				dataType: dateTime
+				summarizeBy: none
+				sourceColumn: last_received_date
+				formatString: dd/MM/yyyy
+
+			column amount_cents
+				dataType: int64
+				summarizeBy: none
+				sourceColumn: amount_cents
+				isHidden
+
+			column open_quantity
+				dataType: int64
+				summarizeBy: none
+				sourceColumn: open_quantity
+
+			column open_cents
+				dataType: int64
+				summarizeBy: none
+				sourceColumn: open_cents
+				isHidden
+
+			column due_eligible
+				dataType: int64
+				summarizeBy: none
+				sourceColumn: due_eligible
+
+			column otif
+				dataType: int64
+				summarizeBy: none
+				sourceColumn: otif
+
+			column lead_days
+				dataType: double
+				summarizeBy: none
+				sourceColumn: lead_days
+
+			column overdue_cents
+				dataType: int64
+				summarizeBy: none
+				sourceColumn: overdue_cents
+				isHidden
+
+			measure 'Valor contratado' = DIVIDE(SUM(fact_orders[amount_cents]), 100)
+				formatString: R$ #,##0.00
+				displayFolder: Indicadores
+
+			measure 'Saldo em aberto' = DIVIDE(SUM(fact_orders[open_cents]), 100)
+				formatString: R$ #,##0.00
+				displayFolder: Indicadores
+
+			measure 'Saldo vencido' = DIVIDE(SUM(fact_orders[overdue_cents]), 100)
+				formatString: R$ #,##0.00
+				displayFolder: Indicadores
+
+			measure 'Linhas elegíveis' = SUM(fact_orders[due_eligible])
+				formatString: #,##0
+				displayFolder: Indicadores
+
+			measure 'Linhas OTIF' = SUM(fact_orders[otif])
+				formatString: #,##0
+				displayFolder: Indicadores
+
+			measure 'OTIF %' = DIVIDE([Linhas OTIF], [Linhas elegíveis])
+				formatString: 0.0%
+				displayFolder: Indicadores
+
+			measure 'Lead time completo' = AVERAGE(fact_orders[lead_days])
+				formatString: 0.0
+				displayFolder: Indicadores
+
+			measure 'Pedidos ativos' = CALCULATE(DISTINCTCOUNT(fact_orders[order_id]), KEEPFILTERS(fact_orders[status] = "ordered"))
+				formatString: #,##0
+				displayFolder: Indicadores
+
+			measure 'Participação fornecedor %' = DIVIDE([Valor contratado], CALCULATE([Valor contratado], ALLSELECTED(dim_partner)))
+				formatString: 0.0%
+				displayFolder: Indicadores
+
+			partition fact_orders = m
+				mode: import
+				source =
+					let
+					    Raw = Csv.Document(File.Contents(DataFolder & "/fact_orders.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					    Headers = Table.PromoteHeaders(Raw, [PromoteAllScalars=true]),
+					    Nulls = Table.ReplaceValue(Headers, "", null, Replacer.ReplaceValue, Table.ColumnNames(Headers)),
+					    Typed = Table.TransformColumnTypes(Nulls, {{"line_id", type text}, {"order_id", type text}, {"order_date", type date}, {"partner_id", type text}, {"product_id", type text}, {"quantity", Int64.Type}, {"unit_price_cents", Int64.Type}, {"status", type text}, {"due_date", type date}, {"received_quantity", Int64.Type}, {"on_time_quantity", Int64.Type}, {"last_received_date", type date}, {"amount_cents", Int64.Type}, {"open_quantity", Int64.Type}, {"open_cents", Int64.Type}, {"due_eligible", Int64.Type}, {"otif", Int64.Type}, {"lead_days", type number}, {"overdue_cents", Int64.Type}}, "en-US")
+					in
+					    Typed
+
+		relationship fact_to_dim_partner
+			fromColumn: fact_orders.partner_id
+			toColumn: dim_partner.partner_id
+			fromCardinality: many
+			toCardinality: one
+			crossFilteringBehavior: oneDirection
+
+		relationship fact_to_dim_product
+			fromColumn: fact_orders.product_id
+			toColumn: dim_product.product_id
+			fromCardinality: many
+			toCardinality: one
+			crossFilteringBehavior: oneDirection
+
+		relationship fact_to_dim_date
+			fromColumn: fact_orders.order_date
+			toColumn: dim_date.date
+			fromCardinality: many
+			toCardinality: one
+			crossFilteringBehavior: oneDirection
