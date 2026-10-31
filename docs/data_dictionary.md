@@ -56,3 +56,7 @@ A taxa de rejeição divide registros rejeitados por linhas de pedidos + eventos
 que têm validação bloqueante. `source_row` é posição de registro começando em 1 (não o número da linha física do JSON).
 Hashes SHA-256 identificam fontes; a resposta HTTP recebida também recebe hash próprio.
 O lote publicado mantém o manifesto dentro do SQLite. A interface distingue esse lote da última tentativa de carga.
+
+## Projeto Power BI
+
+O PBIP acrescenta `dim_warehouse` e `fact_inventory`, que não existem no pipeline de compras. O almoxarifado do pedido e a foto de estoque são sintéticos, semente 42. As medidas e os totais sem segmentador estão no [dicionário de medidas](dicionario_medidas.md).

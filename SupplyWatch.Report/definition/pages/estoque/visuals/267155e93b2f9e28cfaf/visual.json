@@ -1,0 +1,190 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "267155e93b2f9e28cfaf",
+  "position": {
+    "x": 12,
+    "y": 460,
+    "z": 13000,
+    "height": 248,
+    "width": 1256,
+    "tabOrder": 13000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_warehouse"
+                    }
+                  },
+                  "Property": "Almoxarifado"
+                }
+              },
+              "queryRef": "dim_warehouse.Almoxarifado",
+              "nativeQueryRef": "Almoxarifado"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_product"
+                    }
+                  },
+                  "Property": "Produto"
+                }
+              },
+              "queryRef": "dim_product.Produto",
+              "nativeQueryRef": "Produto"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_product"
+                    }
+                  },
+                  "Property": "Categoria"
+                }
+              },
+              "queryRef": "dim_product.Categoria",
+              "nativeQueryRef": "Categoria"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_inventory"
+                    }
+                  },
+                  "Property": "Estoque na posição"
+                }
+              },
+              "queryRef": "fact_inventory.Estoque na posição",
+              "nativeQueryRef": "Estoque na posição"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_inventory"
+                    }
+                  },
+                  "Property": "Demanda na posição"
+                }
+              },
+              "queryRef": "fact_inventory.Demanda na posição",
+              "nativeQueryRef": "Demanda na posição"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_inventory"
+                    }
+                  },
+                  "Property": "Cobertura em dias"
+                }
+              },
+              "queryRef": "fact_inventory.Cobertura em dias",
+              "nativeQueryRef": "Cobertura em dias"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_inventory"
+                    }
+                  },
+                  "Property": "Estoque de segurança na posição"
+                }
+              },
+              "queryRef": "fact_inventory.Estoque de segurança na posição",
+              "nativeQueryRef": "Estoque de segurança na posição"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_inventory"
+                    }
+                  },
+                  "Property": "Dias em ruptura"
+                }
+              },
+              "queryRef": "fact_inventory.Dias em ruptura",
+              "nativeQueryRef": "Dias em ruptura"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_inventory"
+                    }
+                  },
+                  "Property": "Taxa de ruptura %"
+                }
+              },
+              "queryRef": "fact_inventory.Taxa de ruptura %",
+              "nativeQueryRef": "Taxa de ruptura %"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "fact_inventory"
+                  }
+                },
+                "Property": "Taxa de ruptura %"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": false
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Posição por almoxarifado e produto'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

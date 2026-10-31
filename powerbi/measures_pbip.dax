@@ -1,0 +1,90 @@
+// Cópia de leitura das medidas do PBIP.
+// A definição que o Desktop abre está em SupplyWatch.SemanticModel/definition/tables.
+
+// fact_orders / Pedidos
+// Soma de quantidade vezes preço unitário, em reais. Cancelados entram como zero. É valor contratado, não valor pago.
+Valor contratado = DIVIDE(SUM(fact_orders[amount_cents]), 100)
+
+// fact_orders / Pedidos
+// Quantidade ainda não recebida vezes preço, em reais. Cancelados entram como zero. É exposição contratual, não perda realizada.
+Saldo em aberto = DIVIDE(SUM(fact_orders[open_cents]), 100)
+
+// fact_orders / Pedidos
+// Saldo em aberto das linhas com prazo até 31/12/2025. O corte está gravado na coluna e não acompanha o relógio do computador.
+Saldo vencido = DIVIDE(SUM(fact_orders[overdue_cents]), 100)
+
+// fact_orders / Pedidos
+// Linhas ativas cujo prazo é menor ou igual à posição 31/12/2025. Cancelados ficam de fora.
+Linhas elegíveis = SUM(fact_orders[due_eligible])
+
+// fact_orders / Pedidos
+// Linhas elegíveis recebidas por completo até o prazo.
+Linhas OTIF = SUM(fact_orders[otif])
+
+// fact_orders / Pedidos
+// Linhas OTIF divididas pelas linhas elegíveis. Linha vencida e ainda não entregue entra no denominador. Denominador zero retorna branco.
+OTIF % = DIVIDE([Linhas OTIF], [Linhas elegíveis])
+
+// fact_orders / Pedidos
+// Média de dias entre o pedido e o último recebimento. Só entra linha recebida por completo. Há viés de sobrevivência.
+Lead time completo = AVERAGE(fact_orders[Lead time (dias)])
+
+// fact_orders / Pedidos
+// Pedidos distintos com status ordered. Cancelados não entram.
+Pedidos ativos = CALCULATE(DISTINCTCOUNT(fact_orders[Pedido]), KEEPFILTERS(fact_orders[Status] = "ordered"))
+
+// fact_orders / Pedidos
+// Valor do fornecedor dividido pelo valor contratado no universo selecionado de fornecedores.
+Participação fornecedor % = DIVIDE([Valor contratado], CALCULATE([Valor contratado], ALLSELECTED(dim_partner)))
+
+// fact_orders / Pedidos
+// Soma da quantidade pedida nas linhas ativas. É o denominador do fill rate.
+Quantidade pedida = CALCULATE(SUM(fact_orders[Qtd pedida]), KEEPFILTERS(fact_orders[Status] = "ordered"))
+
+// fact_orders / Pedidos
+// Soma da quantidade recebida nas linhas ativas, com ou sem atraso. É o numerador do fill rate.
+Quantidade recebida = CALCULATE(SUM(fact_orders[Qtd recebida]), KEEPFILTERS(fact_orders[Status] = "ordered"))
+
+// fact_orders / Pedidos
+// Quantidade recebida dividida pela quantidade pedida, só em linhas ativas. Não exige pontualidade. É diferente do OTIF, que é por linha e exige o prazo.
+Fill rate % = DIVIDE([Quantidade recebida], [Quantidade pedida])
+
+// fact_inventory / Estoque
+// Linhas da foto diária no filtro. Cada linha é um dia de um produto em um almoxarifado.
+Dias observados = COUNTROWS(fact_inventory)
+
+// fact_inventory / Estoque
+// Dias em que a demanda do produto no almoxarifado não foi toda atendida.
+Dias em ruptura = SUM(fact_inventory[Ruptura])
+
+// fact_inventory / Estoque
+// Dias em ruptura divididos pelos dias observados. Dia sem demanda não conta como ruptura, mesmo com estoque zerado.
+Taxa de ruptura % = DIVIDE([Dias em ruptura], [Dias observados])
+
+// fact_inventory / Estoque
+// Soma das unidades pedidas pelo consumo do dia e não atendidas pelo estoque.
+Quantidade não atendida total = SUM(fact_inventory[Quantidade não atendida])
+
+// fact_inventory / Estoque
+// Soma do estoque no último dia visível do calendário. Sem filtro, a posição é 31/12/2025.
+Estoque na posição = VAR UltimaData = MAX(dim_date[Data]) RETURN CALCULATE(SUM(fact_inventory[Estoque]), dim_date[Data] = UltimaData)
+
+// fact_inventory / Estoque
+// Demanda do último dia visível do calendário. Serve de contexto da posição, não de média.
+Demanda na posição = VAR UltimaData = MAX(dim_date[Data]) RETURN CALCULATE(SUM(fact_inventory[Demanda do dia]), dim_date[Data] = UltimaData)
+
+// fact_inventory / Estoque
+// Pares produto-almoxarifado em ruptura no último dia visível.
+Combinações em ruptura = VAR UltimaData = MAX(dim_date[Data]) RETURN CALCULATE(COUNTROWS(fact_inventory), dim_date[Data] = UltimaData, fact_inventory[Ruptura] = 1)
+
+// fact_inventory / Estoque
+// Estoque no último dia do filtro dividido pela demanda média diária do período filtrado. Não é meta de cobertura.
+Cobertura em dias = VAR UltimaData = MAX(dim_date[Data]) VAR Estoque = CALCULATE(SUM(fact_inventory[Estoque]), dim_date[Data] = UltimaData) VAR Media = AVERAGEX(VALUES(dim_date[Data]), CALCULATE(SUM(fact_inventory[Demanda do dia]))) RETURN DIVIDE(Estoque, Media)
+
+// fact_inventory / Estoque
+// Soma do parâmetro de estoque de segurança no último dia do filtro. O parâmetro é constante por produto e almoxarifado.
+Estoque de segurança na posição = VAR UltimaData = MAX(dim_date[Data]) RETURN CALCULATE(SUM(fact_inventory[Estoque de segurança]), dim_date[Data] = UltimaData)
+
+// dim_date / Calendário
+// Última data visível no calendário filtrado. Sem filtro, é 31/12/2025.
+Posição = MAX(dim_date[Data])

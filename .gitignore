@@ -15,5 +15,11 @@ reports/runtime/
 
 .test-tmp/
 
+# Cache local do Power BI Desktop. A definição do PBIP permanece no git.
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+**/.pbi/editorSettings.json
+**/.pbi/unappliedChanges.json
+
 **/bin/
 **/obj/

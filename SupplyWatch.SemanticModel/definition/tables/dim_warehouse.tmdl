@@ -1,0 +1,36 @@
+/// Almoxarifado fictício. Não existe na fonte de pedidos.
+table dim_warehouse
+	column warehouse_id
+		dataType: string
+		isHidden
+		isKey
+		summarizeBy: none
+		sourceColumn: warehouse_id
+	column Almoxarifado
+		dataType: string
+		summarizeBy: none
+		sourceColumn: warehouse_name
+	column Cidade
+		dataType: string
+		summarizeBy: none
+		sourceColumn: city
+	column 'UF do almoxarifado'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: state
+	partition dim_warehouse = m
+		mode: import
+		source =
+			let
+			    Nome = "dim_warehouse.csv",
+			    Ler = (pasta as text) as table =>
+			        let
+			            Bruto = Csv.Document(File.Contents(pasta & "/" & Nome), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+			            Cabecalho = Table.PromoteHeaders(Bruto, [PromoteAllScalars=true]),
+			            Nulos = Table.ReplaceValue(Cabecalho, "", null, Replacer.ReplaceValue, Table.ColumnNames(Cabecalho))
+			        in
+			            Nulos,
+			    Fonte = try Ler(DataFolder) otherwise Ler("./" & DataFolder),
+			    Tipos = Table.TransformColumnTypes(Fonte, {{"warehouse_id", type text}, {"warehouse_name", type text}, {"city", type text}, {"state", type text}}, "en-US")
+			in
+			    Tipos

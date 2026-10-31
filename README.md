@@ -63,7 +63,7 @@ flowchart LR
     G --> S[SQLite: fato e dimensões]
     S --> M[Views SQL de indicadores]
     S --> U[Streamlit: autosserviço]
-    S --> P[CSV tratado: Power BI / TMDL / DAX]
+    S --> P[CSV em data/pbi: projeto PBIP]
 ```
 
 A fato tem uma linha por item de pedido. Eventos são agregados antes do join para impedir multiplicação
@@ -74,12 +74,13 @@ Para demonstrar integração por API, em outro terminal execute `python -m analy
 Depois rode `python -m analytics.pipeline --api-base-url http://127.0.0.1:8765`.
 É uma API local de demonstração com paginação; não se apresenta como um ERP real conectado.
 
-## Power BI e segunda plataforma
+## Power BI
 
-O [pacote Power BI](powerbi/README.md) contém modelo TMDL completo, medidas DAX, consultas M, tema e
-roteiro de construção/homologação do relatório. **Não há PBIX nem validação visual no Power BI Desktop**.
-O dashboard funcional usa **Streamlit + Plotly**, uma segunda plataforma de aplicações analíticas.
-Não é alegada experiência com Tableau, Qlik ou outra ferramenta que este projeto não utilize.
+O arquivo [SupplyWatch.pbip](SupplyWatch.pbip) é um projeto Power BI com modelo estrela e relatório de quatro páginas. Abra esse arquivo no Power BI Desktop no Windows. O roteiro, o diagrama, as medidas e o checklist estão em [powerbi/README.md](powerbi/README.md).
+
+Não há arquivo `.pbix` neste repositório. As imagens em `docs/powerbi/` são pré-visualizações geradas por script com matplotlib, e não capturas do Power BI Desktop. O modelo passou no parser TMDL (`Microsoft.AnalysisServices`) e o relatório passou nos esquemas públicos do PBIR, mas o projeto ainda não foi aberto no Power BI Desktop.
+
+O dashboard executável do projeto continua sendo **Streamlit + Plotly**. Não é alegada experiência com Tableau, Qlik ou outra ferramenta que este projeto não utilize.
 
 ## Como avaliar este projeto
 
@@ -90,18 +91,18 @@ Não é alegada experiência com Tableau, Qlik ou outra ferramenta que este proj
 | ETL e qualidade | [Pipeline](analytics/pipeline.py), [regras](analytics/domain.py), [auditoria de exemplo](reports/sample/quality.json) |
 | SQL analítico | [Marts com CTE e funções de janela](sql/marts.sql), [consultas](sql/analysis.sql) |
 | Python e testes | [Testes](tests), [CI](.github/workflows/quality.yml) |
-| BI e autosserviço | [App](app.py), [Power BI](powerbi/README.md) |
+| BI e autosserviço | [App](app.py), [Power BI](powerbi/README.md), [SupplyWatch.pbip](SupplyWatch.pbip) |
 | Recomendações e comunicação | [Parecer gerado a partir dos dados](reports/sample/executive_summary.md) |
 | Adoção e manutenção | [Manual do usuário e operação](docs/runbook.md) |
 | Inglês técnico | [English overview](docs/README.en.md) |
 
 ## Limites e próximos passos
 
-- Snapshot de 2024–2025 com corte fixo. Não é um pipeline incremental nem um ambiente de produção.
+- Snapshot de 2024-2025 com corte fixo. Não é um pipeline incremental nem um ambiente de produção.
 - Sem impostos, câmbio, integração autenticada com ERP, SLA real, RLS ou armazenamento de dados pessoais.
 - O banco SQLite e a telemetria local atendem demonstrações com baixo volume. Não há controle de acesso multiusuário.
 - A publicação do SQLite é atômica; CSVs e relatórios derivados são regravados na sequência. Execute uma carga por vez e atualize o BI após seu término.
 - Campos extraídos de produção exigiriam acordos de acesso, histórico de alterações e homologação dos donos dos indicadores.
-- Plano sugerido: homologar o relatório no Power BI Desktop, conectar uma fonte autorizada e validar definições com usuários.
+- Plano sugerido: abrir o `.pbip` no Power BI Desktop, salvar um `.pbix` e só então conectar uma fonte autorizada.
 
 MIT. Autor: [JVCSampaio](https://github.com/JVCSampaio).

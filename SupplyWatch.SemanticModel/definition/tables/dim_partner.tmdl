@@ -1,0 +1,36 @@
+/// Fornecedor fictício. A UF vem do cadastro Excel do pipeline.
+table dim_partner
+	column partner_id
+		dataType: string
+		isHidden
+		isKey
+		summarizeBy: none
+		sourceColumn: partner_id
+	column Fornecedor
+		dataType: string
+		summarizeBy: none
+		sourceColumn: partner_name
+	column UF
+		dataType: string
+		summarizeBy: none
+		sourceColumn: region
+	column Segmento
+		dataType: string
+		summarizeBy: none
+		sourceColumn: segment
+	partition dim_partner = m
+		mode: import
+		source =
+			let
+			    Nome = "dim_partner.csv",
+			    Ler = (pasta as text) as table =>
+			        let
+			            Bruto = Csv.Document(File.Contents(pasta & "/" & Nome), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+			            Cabecalho = Table.PromoteHeaders(Bruto, [PromoteAllScalars=true]),
+			            Nulos = Table.ReplaceValue(Cabecalho, "", null, Replacer.ReplaceValue, Table.ColumnNames(Cabecalho))
+			        in
+			            Nulos,
+			    Fonte = try Ler(DataFolder) otherwise Ler("./" & DataFolder),
+			    Tipos = Table.TransformColumnTypes(Fonte, {{"partner_id", type text}, {"partner_name", type text}, {"region", type text}, {"segment", type text}}, "en-US")
+			in
+			    Tipos
