@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "SupplyWatch"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "6be55e2b-61fe-5513-b061-69019c5ad3ed"
+  }
+}

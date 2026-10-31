@@ -1,0 +1,13 @@
+partner_id,partner_name,region,segment
+SUP001,Fornecedor 01,RJ,Equipamentos
+SUP002,Fornecedor 02,SP,Manutenção
+SUP003,Fornecedor 03,ES,Segurança
+SUP004,Fornecedor 04,BA,Equipamentos
+SUP005,Fornecedor 05,RJ,Manutenção
+SUP006,Fornecedor 06,SP,Segurança
+SUP007,Fornecedor 07,ES,Equipamentos
+SUP008,Fornecedor 08,BA,Manutenção
+SUP009,Fornecedor 09,RJ,Segurança
+SUP010,Fornecedor 10,SP,Equipamentos
+SUP011,Fornecedor 11,ES,Manutenção
+SUP012,Fornecedor 12,BA,Segurança

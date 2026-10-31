@@ -1,0 +1,15 @@
+model Model
+	culture: pt-BR
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+	annotation __PBI_TimeIntelligenceEnabled = 0
+ref table dim_date
+ref table dim_partner
+ref table dim_product
+ref table dim_warehouse
+ref table fact_orders
+ref table fact_inventory
+ref expression DataFolder

@@ -1,0 +1,51 @@
+/// Calendário diário de 01/01/2024 a 31/12/2025. Tabela de datas do modelo.
+table dim_date
+	dataCategory: Time
+	column Data
+		dataType: dateTime
+		isKey
+		summarizeBy: none
+		sourceColumn: date
+		formatString: dd/MM/yyyy
+	column Ano
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: year
+	column Trimestre
+		dataType: string
+		summarizeBy: none
+		sourceColumn: quarter
+	column 'Ano-mês'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: month
+	column month_sort
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: month_sort
+	column 'Mês'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: month_name
+		sortByColumn: month_sort
+	/// Última data visível no calendário filtrado. Sem filtro, é 31/12/2025.
+	measure 'Posição' = MAX(dim_date[Data])
+		formatString: dd/MM/yyyy
+		displayFolder: Calendário
+	partition dim_date = m
+		mode: import
+		source =
+			let
+			    Nome = "dim_date.csv",
+			    Ler = (pasta as text) as table =>
+			        let
+			            Bruto = Csv.Document(File.Contents(pasta & "/" & Nome), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+			            Cabecalho = Table.PromoteHeaders(Bruto, [PromoteAllScalars=true]),
+			            Nulos = Table.ReplaceValue(Cabecalho, "", null, Replacer.ReplaceValue, Table.ColumnNames(Cabecalho))
+			        in
+			            Nulos,
+			    Fonte = try Ler(DataFolder) otherwise Ler("./" & DataFolder),
+			    Tipos = Table.TransformColumnTypes(Fonte, {{"date", type date}, {"year", Int64.Type}, {"quarter", type text}, {"month", type text}, {"month_sort", Int64.Type}, {"month_name", type text}}, "en-US")
+			in
+			    Tipos

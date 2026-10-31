@@ -26,7 +26,7 @@ As áreas precisam consultar uma definição comum de indicador e rastrear diver
 | R03 | Confiança na carga | Duplicidades, nulos, datas e referências inválidas em quarentena | `test_shared.py` e relatório de qualidade |
 | R04 | Continuidade | Carga recusada não substitui banco aprovado | Teste com limiar zero |
 | R05 | Autonomia | Filtrar UF/período/categoria e exportar o mesmo recorte | AppTest + revisão visual |
-| R06 | Compartilhar modelo BI | Dimensões com chaves únicas, medidas documentadas e pacote Power BI | SQL e `powerbi/` |
+| R06 | Compartilhar modelo BI | Dimensões com chaves únicas, medidas documentadas e projeto PBIP abrível | SQL, `powerbi/` e `SupplyWatch.pbip` |
 | R07 | Transformar análise em ação | Parecer identifica problema, responsável proposto, prazo e revisão | `executive_summary.md` |
 | R08 | Monitorar utilidade | Sessões, aberturas e exportações opt-in, sem identificação pessoal | Testes de telemetria e aba Qualidade |
 | R09 | Evitar viés de entrega | Linhas vencidas não entregues entram no denominador OTIF | Testes de entregas parciais e ausência de recebimentos |

@@ -22,7 +22,7 @@
 1. Preserve o contrato das fontes e execute `python -m analytics.pipeline` na raiz.
 2. Confira o código de saída. Se falhar, leia a mensagem, `reports/runtime/quality.json` quando disponível e `data/quarantine`.
 3. Corrija a origem e execute de novo. Não edite a fato para esconder o erro.
-4. Após sucesso, recarregue o Streamlit e atualize os CSVs no Power BI.
+4. Após sucesso, recarregue o Streamlit. O projeto Power BI lê `data/pbi`, gerado por `python powerbi/build_pbip.py`, e não a pasta `data/exports`.
 5. Registre divergências e ações com o responsável pelo indicador.
 
 Uma mudança de esquema pode falhar antes de gerar relatório de qualidade; nesse caso o erro da execução é a evidência.

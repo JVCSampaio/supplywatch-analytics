@@ -1,0 +1,101 @@
+/// Foto diária sintética de estoque por produto e almoxarifado. Não faz parte do pipeline de compras.
+table fact_inventory
+	column snapshot_id
+		dataType: string
+		isHidden
+		isKey
+		summarizeBy: none
+		sourceColumn: snapshot_id
+	column 'Data do snapshot'
+		dataType: dateTime
+		isHidden
+		summarizeBy: none
+		sourceColumn: snapshot_date
+		formatString: dd/MM/yyyy
+	column warehouse_id
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: warehouse_id
+	column product_id
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: product_id
+	column Estoque
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: on_hand_qty
+	column 'Estoque de segurança'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: safety_qty
+	column 'Demanda do dia'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: demand_qty
+	column 'Quantidade não atendida'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: short_qty
+	column Ruptura
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: stockout_flag
+	/// Linhas da foto diária no filtro. Cada linha é um dia de um produto em um almoxarifado.
+	measure 'Dias observados' = COUNTROWS(fact_inventory)
+		formatString: #,##0
+		displayFolder: Estoque
+	/// Dias em que a demanda do produto no almoxarifado não foi toda atendida.
+	measure 'Dias em ruptura' = SUM(fact_inventory[Ruptura])
+		formatString: #,##0
+		displayFolder: Estoque
+	/// Dias em ruptura divididos pelos dias observados. Dia sem demanda não conta como ruptura, mesmo com estoque zerado.
+	measure 'Taxa de ruptura %' = DIVIDE([Dias em ruptura], [Dias observados])
+		formatString: 0.0%
+		displayFolder: Estoque
+	/// Soma das unidades pedidas pelo consumo do dia e não atendidas pelo estoque.
+	measure 'Quantidade não atendida total' = SUM(fact_inventory[Quantidade não atendida])
+		formatString: #,##0
+		displayFolder: Estoque
+	/// Soma do estoque no último dia visível do calendário. Sem filtro, a posição é 31/12/2025.
+	measure 'Estoque na posição' = VAR UltimaData = MAX(dim_date[Data]) RETURN CALCULATE(SUM(fact_inventory[Estoque]), dim_date[Data] = UltimaData)
+		formatString: #,##0
+		displayFolder: Estoque
+	/// Demanda do último dia visível do calendário. Serve de contexto da posição, não de média.
+	measure 'Demanda na posição' = VAR UltimaData = MAX(dim_date[Data]) RETURN CALCULATE(SUM(fact_inventory[Demanda do dia]), dim_date[Data] = UltimaData)
+		formatString: #,##0
+		displayFolder: Estoque
+	/// Pares produto-almoxarifado em ruptura no último dia visível.
+	measure 'Combinações em ruptura' = VAR UltimaData = MAX(dim_date[Data]) RETURN CALCULATE(COUNTROWS(fact_inventory), dim_date[Data] = UltimaData, fact_inventory[Ruptura] = 1)
+		formatString: #,##0
+		displayFolder: Estoque
+	/// Estoque no último dia do filtro dividido pela demanda média diária do período filtrado. Não é meta de cobertura.
+	measure 'Cobertura em dias' = VAR UltimaData = MAX(dim_date[Data]) VAR Estoque = CALCULATE(SUM(fact_inventory[Estoque]), dim_date[Data] = UltimaData) VAR Media = AVERAGEX(VALUES(dim_date[Data]), CALCULATE(SUM(fact_inventory[Demanda do dia]))) RETURN DIVIDE(Estoque, Media)
+		formatString: 0.0
+		displayFolder: Estoque
+	/// Soma do parâmetro de estoque de segurança no último dia do filtro. O parâmetro é constante por produto e almoxarifado.
+	measure 'Estoque de segurança na posição' = VAR UltimaData = MAX(dim_date[Data]) RETURN CALCULATE(SUM(fact_inventory[Estoque de segurança]), dim_date[Data] = UltimaData)
+		formatString: #,##0
+		displayFolder: Estoque
+	partition fact_inventory = m
+		mode: import
+		source =
+			let
+			    Nome = "fact_inventory.csv",
+			    Ler = (pasta as text) as table =>
+			        let
+			            Bruto = Csv.Document(File.Contents(pasta & "/" & Nome), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+			            Cabecalho = Table.PromoteHeaders(Bruto, [PromoteAllScalars=true]),
+			            Nulos = Table.ReplaceValue(Cabecalho, "", null, Replacer.ReplaceValue, Table.ColumnNames(Cabecalho))
+			        in
+			            Nulos,
+			    Fonte = try Ler(DataFolder) otherwise Ler("./" & DataFolder),
+			    Tipos = Table.TransformColumnTypes(Fonte, {{"snapshot_id", type text}, {"snapshot_date", type date}, {"warehouse_id", type text}, {"product_id", type text}, {"on_hand_qty", Int64.Type}, {"safety_qty", Int64.Type}, {"demand_qty", Int64.Type}, {"short_qty", Int64.Type}, {"stockout_flag", Int64.Type}}, "en-US")
+			in
+			    Tipos

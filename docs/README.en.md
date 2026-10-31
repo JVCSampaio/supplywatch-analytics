@@ -1,4 +1,4 @@
-# SupplyWatch — technical overview
+# SupplyWatch: technical overview
 
 This portfolio case study answers a business question using Python, relational SQL and self-service analytics.
 All companies and transactions are synthetic. It does not claim real operational savings or employment experience.
@@ -12,8 +12,9 @@ to order lines. Financial values use integer cents. Ratios are computed from agg
 Validated data is published by replacing a temporary database. Rebuilding the same sources is idempotent.
 
 The Streamlit app provides filters, governed exploration, CSV exports, data-quality evidence and optional local usage events.
-Power BI assets include a complete TMDL model, DAX measures, typed Power Query sources and a report layout specification.
-There is no PBIX or completed Power BI Desktop visual acceptance test in this repository.
+Power BI assets include a PBIP project (`SupplyWatch.pbip`) with a star schema, DAX measures and a four-page PBIR report.
+There is no PBIX in this repository. The pictures under `docs/powerbi/` are script-generated previews, not Desktop screenshots.
+The TMDL parser loaded the model. Power BI Desktop was not run here.
 
 OTIF measures fully received quantities by their due date over all due order lines, including undelivered overdue lines. Open commitments are exposure, not realized losses.
 

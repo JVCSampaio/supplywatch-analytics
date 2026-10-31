@@ -1,0 +1,57 @@
+{
+  "synthetic": true,
+  "seed": 42,
+  "as_of": "2025-12-31",
+  "label": "Dados sintéticos. Pedidos vêm do pipeline com semente 42. Almoxarifado do pedido e estoque foram gerados à parte, com a mesma semente.",
+  "orders": {
+    "valor_contratado": 39510615.23,
+    "saldo_aberto": 3424817.55,
+    "saldo_vencido": 2497540.46,
+    "linhas_elegiveis": 1690,
+    "linhas_otif": 784,
+    "otif": 0.463905325443787,
+    "quantidade_pedida": 54237,
+    "quantidade_recebida": 48636,
+    "fill_rate": 0.8967310138835113,
+    "lead_time": 27.26829268292683,
+    "pedidos_ativos": 873
+  },
+  "inventory": {
+    "as_of": "2025-12-31",
+    "dias_observados": 23392,
+    "dias_em_ruptura": 3421,
+    "taxa_ruptura": 0.14624658002735977,
+    "quantidade_nao_atendida": 15550,
+    "estoque_na_posicao": 1588,
+    "demanda_na_posicao": 92,
+    "combinacoes_em_ruptura": 4,
+    "cobertura_dias": 12.80574523712341,
+    "seguranca_na_posicao": 620
+  },
+  "files": {
+    "dim_date.csv": {
+      "rows": 731,
+      "sha256": "0d5c313bbb8fe4b2905a17e30dab6213a3913a79f1789d029ffa3e73ba892837"
+    },
+    "dim_partner.csv": {
+      "rows": 12,
+      "sha256": "458298d25c19be41da0b8d7a614b21dd5f02f26ae042e30c94d3767086a39e23"
+    },
+    "dim_product.csv": {
+      "rows": 8,
+      "sha256": "39657d99b6415aca675d00a2d9fdec474fbf3b460b762538794c3b9ef52b7e8e"
+    },
+    "dim_warehouse.csv": {
+      "rows": 4,
+      "sha256": "c81b8492973c1bcabf7aa6589171a121fe4be13602f5f64995a1926cf2074022"
+    },
+    "fact_orders.csv": {
+      "rows": 1800,
+      "sha256": "056c81887863c80fe330da020d5f7c9b4ad74e831d8221c1f4ebb601a7e7e24b"
+    },
+    "fact_inventory.csv": {
+      "rows": 23392,
+      "sha256": "6a63cae2784cf7a846f66a65f7accd04c6407271f6d0386761941d4fedde6fcd"
+    }
+  }
+}

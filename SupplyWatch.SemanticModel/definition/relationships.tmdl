@@ -1,0 +1,48 @@
+relationship orders_date
+	fromColumn: fact_orders.'Data do pedido'
+	toColumn: dim_date.Data
+	fromCardinality: many
+	toCardinality: one
+	crossFilteringBehavior: oneDirection
+
+relationship orders_partner
+	fromColumn: fact_orders.partner_id
+	toColumn: dim_partner.partner_id
+	fromCardinality: many
+	toCardinality: one
+	crossFilteringBehavior: oneDirection
+
+relationship orders_product
+	fromColumn: fact_orders.product_id
+	toColumn: dim_product.product_id
+	fromCardinality: many
+	toCardinality: one
+	crossFilteringBehavior: oneDirection
+
+relationship orders_warehouse
+	fromColumn: fact_orders.warehouse_id
+	toColumn: dim_warehouse.warehouse_id
+	fromCardinality: many
+	toCardinality: one
+	crossFilteringBehavior: oneDirection
+
+relationship inventory_date
+	fromColumn: fact_inventory.'Data do snapshot'
+	toColumn: dim_date.Data
+	fromCardinality: many
+	toCardinality: one
+	crossFilteringBehavior: oneDirection
+
+relationship inventory_product
+	fromColumn: fact_inventory.product_id
+	toColumn: dim_product.product_id
+	fromCardinality: many
+	toCardinality: one
+	crossFilteringBehavior: oneDirection
+
+relationship inventory_warehouse
+	fromColumn: fact_inventory.warehouse_id
+	toColumn: dim_warehouse.warehouse_id
+	fromCardinality: many
+	toCardinality: one
+	crossFilteringBehavior: oneDirection

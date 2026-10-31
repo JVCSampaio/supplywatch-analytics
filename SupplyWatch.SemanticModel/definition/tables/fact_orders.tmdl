@@ -1,0 +1,165 @@
+/// Uma linha por item de pedido, vinda do pipeline. O almoxarifado é atribuição sintética da semente 42.
+table fact_orders
+	column Linha
+		dataType: string
+		isKey
+		summarizeBy: none
+		sourceColumn: line_id
+	column Pedido
+		dataType: string
+		summarizeBy: none
+		sourceColumn: order_id
+	column 'Data do pedido'
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: order_date
+		formatString: dd/MM/yyyy
+	column partner_id
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: partner_id
+	column product_id
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: product_id
+	column warehouse_id
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: warehouse_id
+	column 'Qtd pedida'
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: quantity
+	column unit_price_cents
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: unit_price_cents
+	column Status
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: status
+	column 'Situação'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: situacao
+	column Prazo
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: due_date
+		formatString: dd/MM/yyyy
+	column 'Qtd recebida'
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: received_quantity
+	column 'Qtd no prazo'
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: on_time_quantity
+	column 'Último recebimento'
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: last_received_date
+		formatString: dd/MM/yyyy
+	column amount_cents
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: amount_cents
+	column 'Qtd em aberto'
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: open_quantity
+	column open_cents
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: open_cents
+	column due_eligible
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: due_eligible
+	column otif
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: otif
+	column 'Lead time (dias)'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: lead_days
+		formatString: 0.0
+	column overdue_cents
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: overdue_cents
+	/// Soma de quantidade vezes preço unitário, em reais. Cancelados entram como zero. É valor contratado, não valor pago.
+	measure 'Valor contratado' = DIVIDE(SUM(fact_orders[amount_cents]), 100)
+		formatString: R$ #,##0.00
+		displayFolder: Pedidos
+	/// Quantidade ainda não recebida vezes preço, em reais. Cancelados entram como zero. É exposição contratual, não perda realizada.
+	measure 'Saldo em aberto' = DIVIDE(SUM(fact_orders[open_cents]), 100)
+		formatString: R$ #,##0.00
+		displayFolder: Pedidos
+	/// Saldo em aberto das linhas com prazo até 31/12/2025. O corte está gravado na coluna e não acompanha o relógio do computador.
+	measure 'Saldo vencido' = DIVIDE(SUM(fact_orders[overdue_cents]), 100)
+		formatString: R$ #,##0.00
+		displayFolder: Pedidos
+	/// Linhas ativas cujo prazo é menor ou igual à posição 31/12/2025. Cancelados ficam de fora.
+	measure 'Linhas elegíveis' = SUM(fact_orders[due_eligible])
+		formatString: #,##0
+		displayFolder: Pedidos
+	/// Linhas elegíveis recebidas por completo até o prazo.
+	measure 'Linhas OTIF' = SUM(fact_orders[otif])
+		formatString: #,##0
+		displayFolder: Pedidos
+	/// Linhas OTIF divididas pelas linhas elegíveis. Linha vencida e ainda não entregue entra no denominador. Denominador zero retorna branco.
+	measure 'OTIF %' = DIVIDE([Linhas OTIF], [Linhas elegíveis])
+		formatString: 0.0%
+		displayFolder: Pedidos
+	/// Média de dias entre o pedido e o último recebimento. Só entra linha recebida por completo. Há viés de sobrevivência.
+	measure 'Lead time completo' = AVERAGE(fact_orders[Lead time (dias)])
+		formatString: 0.0
+		displayFolder: Pedidos
+	/// Pedidos distintos com status ordered. Cancelados não entram.
+	measure 'Pedidos ativos' = CALCULATE(DISTINCTCOUNT(fact_orders[Pedido]), KEEPFILTERS(fact_orders[Status] = "ordered"))
+		formatString: #,##0
+		displayFolder: Pedidos
+	/// Valor do fornecedor dividido pelo valor contratado no universo selecionado de fornecedores.
+	measure 'Participação fornecedor %' = DIVIDE([Valor contratado], CALCULATE([Valor contratado], ALLSELECTED(dim_partner)))
+		formatString: 0.0%
+		displayFolder: Pedidos
+	/// Soma da quantidade pedida nas linhas ativas. É o denominador do fill rate.
+	measure 'Quantidade pedida' = CALCULATE(SUM(fact_orders[Qtd pedida]), KEEPFILTERS(fact_orders[Status] = "ordered"))
+		formatString: #,##0
+		displayFolder: Pedidos
+	/// Soma da quantidade recebida nas linhas ativas, com ou sem atraso. É o numerador do fill rate.
+	measure 'Quantidade recebida' = CALCULATE(SUM(fact_orders[Qtd recebida]), KEEPFILTERS(fact_orders[Status] = "ordered"))
+		formatString: #,##0
+		displayFolder: Pedidos
+	/// Quantidade recebida dividida pela quantidade pedida, só em linhas ativas. Não exige pontualidade. É diferente do OTIF, que é por linha e exige o prazo.
+	measure 'Fill rate %' = DIVIDE([Quantidade recebida], [Quantidade pedida])
+		formatString: 0.0%
+		displayFolder: Pedidos
+	partition fact_orders = m
+		mode: import
+		source =
+			let
+			    Nome = "fact_orders.csv",
+			    Ler = (pasta as text) as table =>
+			        let
+			            Bruto = Csv.Document(File.Contents(pasta & "/" & Nome), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+			            Cabecalho = Table.PromoteHeaders(Bruto, [PromoteAllScalars=true]),
+			            Nulos = Table.ReplaceValue(Cabecalho, "", null, Replacer.ReplaceValue, Table.ColumnNames(Cabecalho))
+			        in
+			            Nulos,
+			    Fonte = try Ler(DataFolder) otherwise Ler("./" & DataFolder),
+			    Tipos = Table.TransformColumnTypes(Fonte, {{"line_id", type text}, {"order_id", type text}, {"order_date", type date}, {"partner_id", type text}, {"product_id", type text}, {"warehouse_id", type text}, {"quantity", Int64.Type}, {"unit_price_cents", Int64.Type}, {"status", type text}, {"situacao", type text}, {"due_date", type date}, {"received_quantity", Int64.Type}, {"on_time_quantity", Int64.Type}, {"last_received_date", type date}, {"amount_cents", Int64.Type}, {"open_quantity", Int64.Type}, {"open_cents", Int64.Type}, {"due_eligible", Int64.Type}, {"otif", Int64.Type}, {"lead_days", type number}, {"overdue_cents", Int64.Type}}, "en-US")
+			in
+			    Tipos

@@ -1,0 +1,49 @@
+{
+  "name": "SupplyWatch",
+  "dataColors": [
+    "#00857C",
+    "#274E73",
+    "#F0A23B",
+    "#92B8C5",
+    "#B65555",
+    "#5B8C5A"
+  ],
+  "background": "#F7F9FC",
+  "foreground": "#142D46",
+  "tableAccent": "#00857C",
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "color": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            }
+          }
+        ],
+        "border": [
+          {
+            "show": false
+          }
+        ]
+      }
+    },
+    "textbox": {
+      "*": {
+        "background": [
+          {
+            "show": false
+          }
+        ],
+        "border": [
+          {
+            "show": false
+          }
+        ]
+      }
+    }
+  }
+}

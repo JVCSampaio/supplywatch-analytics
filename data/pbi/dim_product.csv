@@ -1,0 +1,9 @@
+product_id,product_name,category
+P001,Válvula industrial,Equipamentos
+P002,Bomba centrífuga,Equipamentos
+P003,Sensor de pressão,Instrumentação
+P004,Transmissor de nível,Instrumentação
+P005,Kit de vedação,Manutenção
+P006,Filtro industrial,Manutenção
+P007,Capacete de proteção,Segurança
+P008,Detector de gás,Segurança

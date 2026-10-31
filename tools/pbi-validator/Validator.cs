@@ -28,4 +28,37 @@ foreach (string root in args)
     var json = System.Text.Json.JsonSerializer.Serialize(result, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
     File.WriteAllText(Path.Combine(fullRoot, "reports", "sample", "powerbi_validation.json"), json);
     Console.WriteLine(root + ": " + json);
+
+    string pbipFolder = Path.Combine(fullRoot, "SupplyWatch.SemanticModel", "definition");
+    var pbip = TmdlSerializer.DeserializeDatabaseFromFolder(pbipFolder);
+    if (pbip.Model.Tables.Count != 6 || pbip.Model.Relationships.Count != 7)
+        throw new Exception($"PBIP model expected 6 tables and 7 relationships, found {pbip.Model.Tables.Count} and {pbip.Model.Relationships.Count}.");
+    foreach (var relationship in pbip.Model.Relationships.Cast<SingleColumnRelationship>())
+    {
+        if (relationship.FromColumn == null || relationship.ToColumn == null)
+            throw new Exception("Unresolved PBIP relationship " + relationship.Name);
+    }
+    var dateTable = pbip.Model.Tables.Find("dim_date");
+    if (dateTable == null || dateTable.DataCategory != "Time")
+        throw new Exception("dim_date is not marked as a date table.");
+    if (pbip.Model.Expressions.Find("DataFolder") == null)
+        throw new Exception("DataFolder parameter is missing.");
+    int pbipMeasures = pbip.Model.Tables.Sum(t => t.Measures.Count);
+    if (pbipMeasures < 20)
+        throw new Exception("PBIP measure count is too small: " + pbipMeasures);
+    var pbipResult = new {
+        parser = "Microsoft.AnalysisServices 19.118.3",
+        tmdl_parse = "passed",
+        tables = pbip.Model.Tables.Count,
+        relationships = pbip.Model.Relationships.Count,
+        measures = pbipMeasures,
+        date_table = dateTable.Name,
+        data_folder_parameter = "DataFolder",
+        dax_execution = "not_run",
+        power_query_execution = "not_run",
+        desktop_visual_validation = "not_run"
+    };
+    var pbipJson = System.Text.Json.JsonSerializer.Serialize(pbipResult, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+    File.WriteAllText(Path.Combine(fullRoot, "reports", "sample", "pbip_tmdl.json"), pbipJson);
+    Console.WriteLine(root + " pbip: " + pbipJson);
 }
