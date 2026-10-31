@@ -2,7 +2,7 @@
 
 Este diretório explica o projeto que o Power BI Desktop abre. O arquivo está na raiz do repositório: [SupplyWatch.pbip](../SupplyWatch.pbip).
 
-Não há `.pbix` aqui. As figuras em [docs/powerbi](../docs/powerbi) são pré-visualização gerada por script, não capturas do Power BI Desktop. O modelo TMDL foi lido pelo parser `Microsoft.AnalysisServices 19.118.3`. O JSON do relatório passou nos esquemas públicos do PBIR. O Desktop não foi executado neste ambiente, então a abertura visual no Windows ainda precisa ser conferida por uma pessoa.
+Não há `.pbix` aqui. As figuras em [docs/powerbi](../docs/powerbi) são pré-visualização gerada por script, não capturas do Power BI Desktop. O modelo TMDL foi lido pelo parser `Microsoft.AnalysisServices 19.118.3`. O JSON do relatório passou nos esquemas públicos do PBIR. O projeto ainda não foi aberto no Power BI Desktop, então a abertura no Windows precisa ser conferida pelo checklist abaixo.
 
 Os dados são sintéticos, semente 42, posição 31/12/2025. Não representam uma operação real.
 
@@ -13,11 +13,11 @@ Os dados são sintéticos, semente 42, posição 31/12/2025. Não representam um
 3. Se o Desktop pedir permissão para a fonte Arquivo, autorize a pasta do repositório.
 4. O parâmetro `DataFolder` vale `data/pbi`, caminho relativo à pasta do `.pbip`. As consultas leem `data/pbi/<arquivo>.csv`.
 5. Sem segmentador, compare Valor contratado, OTIF %, Saldo vencido e Pedidos ativos com o [dicionário de medidas](../docs/dicionario_medidas.md) e com [metrics.json](../reports/sample/metrics.json). Tolerância: R$ 0,01 e 0,000001 na proporção.
-6. Se a atualização disser que o arquivo não existe, o `File.Contents` dessa versão do Desktop não resolveu o caminho relativo. Rode `powershell -File powerbi/ajustar-caminho.ps1` ou edite o parâmetro `DataFolder` para o caminho absoluto de `data/pbi` com barras `/`. Exemplo: `C:/Users/John/supplywatch-analytics/data/pbi`. Não faça commit desse caminho.
+6. Se a atualização disser que o arquivo não existe, o `File.Contents` dessa versão do Desktop não resolveu o caminho relativo. Rode `powershell -File powerbi/ajustar-caminho.ps1` ou edite o parâmetro `DataFolder` para o caminho absoluto de `data/pbi` com barras `/`. Exemplo: `C:/Users/<seu-usuario>/supplywatch-analytics/data/pbi`. Não faça commit desse caminho.
 
 O formato do relatório é PBIR (`SupplyWatch.Report/definition`). A `definition.pbir` está na versão 4.0 e aponta para `../SupplyWatch.SemanticModel`. Não há um `report.json` legado na raiz da pasta do relatório.
 
-## Checklist do John
+## Checklist de homologação
 
 - [ ] Abrir `SupplyWatch.pbip` no Power BI Desktop no Windows.
 - [ ] Atualizar os dados e conferir os quatro totais do dicionário, sem segmentador.

@@ -78,9 +78,9 @@ Depois rode `python -m analytics.pipeline --api-base-url http://127.0.0.1:8765`.
 
 O arquivo [SupplyWatch.pbip](SupplyWatch.pbip) é um projeto Power BI com modelo estrela e relatório de quatro páginas. Abra esse arquivo no Power BI Desktop no Windows. O roteiro, o diagrama, as medidas e o checklist estão em [powerbi/README.md](powerbi/README.md).
 
-Não há arquivo `.pbix` neste repositório. As imagens em `docs/powerbi/` são pré-visualização gerada por script, não capturas do Desktop. O parser TMDL leu o modelo. O Desktop não foi executado aqui.
+Não há arquivo `.pbix` neste repositório. As imagens em `docs/powerbi/` são pré-visualizações geradas por script com matplotlib, e não capturas do Power BI Desktop. O modelo passou no parser TMDL (`Microsoft.AnalysisServices`) e o relatório passou nos esquemas públicos do PBIR, mas o projeto ainda não foi aberto no Power BI Desktop.
 
-O dashboard que roda neste ambiente continua sendo **Streamlit + Plotly**. Não é alegada experiência com Tableau, Qlik ou outra ferramenta que este projeto não utilize.
+O dashboard executável do projeto continua sendo **Streamlit + Plotly**. Não é alegada experiência com Tableau, Qlik ou outra ferramenta que este projeto não utilize.
 
 ## Como avaliar este projeto
 
