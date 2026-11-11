@@ -15,3 +15,6 @@ Lead time completo = AVERAGE(fact_orders[lead_days])
 Pedidos ativos = CALCULATE(DISTINCTCOUNT(fact_orders[order_id]), KEEPFILTERS(fact_orders[status] = "ordered"))
 
 Participação fornecedor % = DIVIDE([Valor contratado], CALCULATE([Valor contratado], ALLSELECTED(dim_partner)))
+
+// Índice de 0 a 100. Metade é a falha de OTIF e metade é o saldo vencido sobre o valor contratado. Branco sem linha elegível ou sem valor contratado. Não é probabilidade.
+Risco do fornecedor = VAR Falha = IF(ISBLANK([OTIF %]), BLANK(), 1 - [OTIF %]) VAR Exposicao = DIVIDE([Saldo vencido], [Valor contratado]) RETURN IF(OR(ISBLANK(Falha), ISBLANK(Exposicao)), BLANK(), 100 * (0.5 * Falha + 0.5 * Exposicao))

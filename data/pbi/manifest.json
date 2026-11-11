@@ -28,6 +28,15 @@
     "cobertura_dias": 12.80574523712341,
     "seguranca_na_posicao": 620
   },
+  "supplier_risk": {
+    "rows": 12,
+    "scored": 12,
+    "blank": 0,
+    "highest_partner": "Fornecedor 08",
+    "highest_score": 57.41263005257514,
+    "sha256": "92e881a2adabbb88d63464781d6d6c408ac4ce55042ec049dbbdc320cd0280ab",
+    "note": "Índice por fornecedor na amostra sintética, sem segmentador. Não é média da carteira nem probabilidade."
+  },
   "files": {
     "dim_date.csv": {
       "rows": 731,

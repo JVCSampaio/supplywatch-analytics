@@ -2,7 +2,7 @@
 
 ## Roteiro de demonstração de três minutos
 
-1. Abra Visão gerencial e explique o indicador principal e sua população.
+1. Abra Visão gerencial, explique o OTIF e mostre a lista ordenada pelo risco do fornecedor.
 2. Selecione UF RJ e uma categoria. Mostre que os valores mudam juntos.
 3. Abra Explorar e exportar, agrupe por segmento e baixe os registros filtrados.
 4. Abra Qualidade e uso: mostre os sete erros intencionais e a rastreabilidade.

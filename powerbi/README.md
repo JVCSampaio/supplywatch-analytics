@@ -53,7 +53,7 @@ Tela 16:9 (1280 por 720). Segmentadores sincronizados: Período (`dim_date[Data]
 | Página | O que responde |
 | --- | --- |
 | Visão executiva | OTIF %, fill rate %, lead time completo, taxa de ruptura %, valor contratado e saldo vencido, com tendência mensal, valor por categoria e saldo vencido por fornecedor. |
-| Fornecedores | Quem entrega no prazo, quem demora e quem concentra saldo vencido. |
+| Fornecedores | Quem entrega no prazo, quem demora, quem concentra saldo vencido e qual índice de risco combina a falha de OTIF com essa exposição. |
 | Estoque e rupturas | Onde a demanda do dia ficou sem atendimento, e qual é o estoque na posição. |
 | Detalhe do pedido | Linhas do fornecedor escolhido no drill-through. |
 
@@ -61,7 +61,7 @@ Tela 16:9 (1280 por 720). Segmentadores sincronizados: Período (`dim_date[Data]
 
 A fórmula, a pasta e o total sem segmentador estão no [dicionário de medidas](../docs/dicionario_medidas.md). A cópia de leitura do DAX está em [measures_pbip.dax](measures_pbip.dax). O que o Desktop carrega é o TMDL em `SupplyWatch.SemanticModel/definition/tables`.
 
-Pedidos: Valor contratado, Saldo em aberto, Saldo vencido, Linhas elegíveis, Linhas OTIF, OTIF %, Lead time completo, Pedidos ativos, Participação fornecedor %, Quantidade pedida, Quantidade recebida, Fill rate %.
+Pedidos: Valor contratado, Saldo em aberto, Saldo vencido, Linhas elegíveis, Linhas OTIF, OTIF %, Lead time completo, Pedidos ativos, Participação fornecedor %, Risco do fornecedor, Quantidade pedida, Quantidade recebida, Fill rate %.
 
 Estoque: Dias observados, Dias em ruptura, Taxa de ruptura %, Quantidade não atendida total, Estoque na posição, Demanda na posição, Combinações em ruptura, Cobertura em dias, Estoque de segurança na posição.
 
@@ -73,6 +73,7 @@ Regras curtas:
 - Fill rate é quantidade recebida dividida pela quantidade pedida, só em linhas ativas. Não exige pontualidade. Na amostra sem filtro fica em 89,7%, enquanto o OTIF fica em 46,4%.
 - Lead time completo é a média dos dias até o último recebimento, só em linha integral. Há viés de sobrevivência.
 - Saldo vencido é exposição em aberto, não perda realizada.
+- Risco do fornecedor = 100 * (0,5 * (1 - OTIF %) + 0,5 * saldo vencido / valor contratado). Fica em branco sem linha elegível ou sem valor contratado. Não é probabilidade. Na amostra sem filtro, os 12 fornecedores têm índice. O maior é Fornecedor 08 com índice 57,4. A tabela está em `data/pbi/supplier_risk.csv`. O DAX repete a fórmula e o Desktop não a executou.
 - Ruptura é o dia em que a demanda do produto no almoxarifado não foi toda atendida. Dia sem demanda e com estoque zero não entra.
 - Centavos viram reais uma vez, na medida. `DIVIDE` com denominador zero devolve branco.
 
@@ -116,7 +117,7 @@ Os cartões monetários da figura usam milhões com uma casa. O dicionário traz
 
 | Verificação | Resultado |
 | --- | --- |
-| Parser TMDL do modelo PBIP (6 tabelas, 7 relacionamentos, 22 medidas, `dim_date` como tabela de datas) | Passou. Evidência em [pbip_tmdl.json](../reports/sample/pbip_tmdl.json). |
+| Parser TMDL do modelo PBIP (6 tabelas, 7 relacionamentos, 23 medidas, `dim_date` como tabela de datas) | Passou. Evidência em [pbip_tmdl.json](../reports/sample/pbip_tmdl.json). |
 | Esquemas JSON públicos do PBIR, do `.pbip` e do `.pbism` | Passou. Evidência em [pbip_structure.json](../reports/sample/pbip_structure.json). |
 | Totais de pedidos sem filtro e com UF RJ | Iguais a `metrics.json` e `metrics_RJ.json`. |
 | Execução do DAX no motor do Power BI | Não feita. |

@@ -135,6 +135,10 @@ table fact_orders
 	measure 'Participação fornecedor %' = DIVIDE([Valor contratado], CALCULATE([Valor contratado], ALLSELECTED(dim_partner)))
 		formatString: 0.0%
 		displayFolder: Pedidos
+	/// Índice de 0 a 100 para priorizar revisão do fornecedor no filtro atual. Metade do peso é a falha de OTIF, isto é 1 menos OTIF %. A outra metade é o saldo vencido dividido pelo valor contratado. Fica em branco sem linha elegível ou sem valor contratado. Não é probabilidade, score de crédito nem criticidade de material.
+	measure 'Risco do fornecedor' = VAR Falha = IF(ISBLANK([OTIF %]), BLANK(), 1 - [OTIF %]) VAR Exposicao = DIVIDE([Saldo vencido], [Valor contratado]) RETURN IF(OR(ISBLANK(Falha), ISBLANK(Exposicao)), BLANK(), 100 * (0.5 * Falha + 0.5 * Exposicao))
+		formatString: 0.0
+		displayFolder: Pedidos
 	/// Soma da quantidade pedida nas linhas ativas. É o denominador do fill rate.
 	measure 'Quantidade pedida' = CALCULATE(SUM(fact_orders[Qtd pedida]), KEEPFILTERS(fact_orders[Status] = "ordered"))
 		formatString: #,##0

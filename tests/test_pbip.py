@@ -3,7 +3,8 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
-from analytics.pbi_export import build_inventory, inventory_kpis, order_kpis, warehouse_id
+from analytics.pbi_export import build_inventory, format_num, inventory_kpis, order_kpis, warehouse_id
+from analytics.risk import dax_expression, supplier_risk_table
 from powerbi.validate_structure import schema_errors, structural_errors
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -64,6 +65,38 @@ def test_warehouse_and_inventory_depend_on_the_seed():
     other = build_inventory(["P001"], seed=99, start="2024-01-01", end="2024-01-31")
     pd.testing.assert_frame_equal(first, second)
     assert not first.equals(other)
+
+
+def test_supplier_risk_export_matches_the_fact_and_the_readme():
+    fact = pd.read_csv(ROOT / "data/pbi/fact_orders.csv")
+    partners = pd.read_csv(ROOT / "data/pbi/dim_partner.csv", dtype=str)
+    expected = supplier_risk_table(fact, partners)
+    actual = pd.read_csv(ROOT / "data/pbi/supplier_risk.csv")
+    pd.testing.assert_frame_equal(actual, expected, check_dtype=False, rtol=1e-9, atol=1e-9)
+    top = expected.iloc[0]
+    needle = f"{top.partner_name} com índice {format_num(top.risk_score)}"
+    scored = f"{int(expected.risk_score.notna().sum())} fornecedores"
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    powerbi = (ROOT / "powerbi/README.md").read_text(encoding="utf-8")
+    dictionary = (ROOT / "docs/dicionario_medidas.md").read_text(encoding="utf-8")
+    assert needle in readme
+    assert needle in powerbi
+    assert needle in dictionary
+    assert scored in readme
+    for row in expected.head(4).itertuples(index=False):
+        assert f"{row.partner_name} com índice {format_num(row.risk_score)}" in readme
+    expression = dax_expression()
+    for path in [
+        ROOT / "SupplyWatch.SemanticModel/definition/tables/fact_orders.tmdl",
+        ROOT / "powerbi/measures_pbip.dax",
+        ROOT / "powerbi/model.tmdl",
+        ROOT / "powerbi/measures.dax",
+    ]:
+        assert expression in path.read_text(encoding="utf-8"), path.name
+    manifest = json.loads((ROOT / "data/pbi/manifest.json").read_text(encoding="utf-8"))
+    assert manifest["supplier_risk"]["highest_partner"] == top.partner_name
+    assert manifest["supplier_risk"]["highest_score"] == pytest.approx(top.risk_score)
+    assert manifest["synthetic"] is True
 
 
 def test_portfolio_text_has_no_em_dash():

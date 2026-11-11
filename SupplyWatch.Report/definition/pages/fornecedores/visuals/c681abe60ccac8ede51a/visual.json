@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "OTIF inclui linha vencida sem entrega. Saldo vencido não é perda realizada.",
+                    "value": "OTIF inclui linha vencida sem entrega. O risco combina essa falha com o saldo vencido.",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "12px",

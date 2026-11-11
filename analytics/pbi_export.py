@@ -13,6 +13,7 @@ import pandas as pd
 from analytics.domain import AS_OF
 from analytics.io import read_partners
 from analytics.pipeline import run
+from analytics.risk import supplier_risk_table
 
 SEED = 42
 START = "2024-01-01"
@@ -213,6 +214,13 @@ def supplier_summary(fact, partners):
     summary = pd.DataFrame(rows).merge(partners, on="partner_id", how="left")
     total = summary.valor_contratado.sum()
     summary["participacao"] = summary.valor_contratado / total if total else 0
+    risk = supplier_risk_table(fact, partners)
+    summary["partner_id"] = summary["partner_id"].astype(str)
+    summary = summary.merge(
+        risk[["partner_id", "falha_otif", "exposicao_vencida", "risk_score"]],
+        on="partner_id",
+        how="left",
+    )
     return summary.sort_values("saldo_vencido", ascending=False)
 
 
