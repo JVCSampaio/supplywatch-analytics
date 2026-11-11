@@ -3,6 +3,7 @@
 import pandas as pd
 from analytics.io import require_columns
 from analytics.quality import Gate
+from analytics.risk import risk_components
 
 AS_OF = "2025-12-31"
 TITLE = "SupplyWatch"
@@ -95,6 +96,25 @@ def kpis(frame):
     }
 
 
+def _risk_line(partners):
+    ranked = []
+    for row in partners.itertuples(index=False):
+        score = risk_components(
+            row.otif_lines, row.eligible_lines, row.overdue_cents, row.amount_cents
+        )["risk_score"]
+        if score is not None:
+            ranked.append((score, int(row.overdue_cents), row.partner_name))
+    if not ranked:
+        return ""
+    ranked.sort(reverse=True)
+    top_score, _, top_name = ranked[0]
+    return (
+        f"- Maior risco de fornecedor: {top_name}, índice {top_score:.1f} "
+        f"entre {len(ranked)} com linha elegível. "
+        "Pesos iguais para falha de OTIF e exposição vencida. Não é probabilidade.\n"
+    )
+
+
 def describe(fact, partners, monthly, output):
     k = kpis(fact)
     worst = partners.sort_values("overdue_cents", ascending=False).iloc[0]
@@ -106,10 +126,11 @@ Dados inteiramente simulados. Posição em {AS_OF}; coorte pela data do pedido.
 - OTIF por linha vencida: {k["rate"]:.1%}; inclui linhas ainda não entregues no denominador.
 - Saldo vencido em aberto: R$ {k["secondary"]:,.2f}.
 - Maior saldo vencido: {worst["partner_name"]}, R$ {worst["overdue_cents"] / 100:,.2f}.
+{_risk_line(partners).rstrip()}
 
 ## Recomendação e plano de ação proposto
 
-1. Compras: revisar as linhas vencidas do fornecedor acima em até 5 dias úteis e solicitar datas de regularização.
+1. Compras: revisar as linhas vencidas de {worst["partner_name"]} em até 5 dias úteis e solicitar datas de regularização.
 2. Operações: classificar criticidade dos itens antes de priorizar expedição. O cadastro atual não mede impacto na produção.
 3. Produto/Dados: revisar rejeições da carga a cada execução. Não substituir ausência de informação por zero.
 4. Em 30 dias, comparar saldo vencido e OTIF com esta linha de base e registrar as ações executadas.

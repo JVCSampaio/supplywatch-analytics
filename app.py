@@ -10,6 +10,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 from analytics.domain import TITLE, SUBTITLE, AMOUNT, AMOUNT_LABEL, PARTNER_LABEL, AS_OF, kpis
+from analytics.risk import risk_components
 from analytics.pipeline import run
 from analytics.query import load, csv_download
 from analytics.telemetry import record, summary
@@ -161,19 +162,39 @@ with tabs[0]:
         st.subheader("Fornecedores que precisam de atenção")
         ranking = frame.groupby("partner_name", as_index=False).agg(
             saldo_vencido=("overdue_cents", "sum"),
+            valor=("amount_cents", "sum"),
             elegiveis=("due_eligible", "sum"),
             completas_no_prazo=("otif", "sum"),
         )
         ranking["OTIF"] = ranking.completas_no_prazo.div(ranking.elegiveis.replace(0, float("nan")))
         ranking["Saldo vencido (R$)"] = ranking.saldo_vencido / 100
-        ranking = ranking.sort_values("saldo_vencido", ascending=False)
+        ranking["Risco"] = [
+            risk_components(otif, eligible, overdue, amount)["risk_score"]
+            for otif, eligible, overdue, amount in zip(
+                ranking.completas_no_prazo,
+                ranking.elegiveis,
+                ranking.saldo_vencido,
+                ranking.valor,
+            )
+        ]
+        ranking = ranking.sort_values(
+            ["Risco", "saldo_vencido"], ascending=[False, False], na_position="last"
+        )
         st.dataframe(
-            ranking[["partner_name", "Saldo vencido (R$)", "OTIF", "elegiveis"]].rename(
-                columns={"partner_name": "Fornecedor", "elegiveis": "Linhas elegíveis"}
-            ),
+            ranking[
+                ["partner_name", "Risco", "Saldo vencido (R$)", "OTIF", "elegiveis"]
+            ].rename(columns={"partner_name": "Fornecedor", "elegiveis": "Linhas elegíveis"}),
             hide_index=True,
-            column_config={"OTIF": st.column_config.NumberColumn(format="percent")},
+            column_config={
+                "OTIF": st.column_config.NumberColumn(format="percent"),
+                "Risco": st.column_config.NumberColumn(format="%.1f"),
+            },
             width="stretch",
+        )
+        st.caption(
+            "Risco = 100 * (0,5 * (1 - OTIF) + 0,5 * saldo vencido / valor contratado). "
+            "Em branco sem linha elegível ou sem valor contratado. "
+            "Índice de prioridade da amostra simulada, não probabilidade."
         )
     else:
         st.subheader("Receita e margem por cliente")

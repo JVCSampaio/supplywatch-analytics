@@ -155,11 +155,53 @@ def test_usage_is_local_and_counts_distinct_sessions(tmp_path):
     assert summary(path) == {"sessions": 1, "views": 1, "exports": 1}
 
 
+def test_sample_quality_hashes_match_the_source_files():
+    import hashlib
+
+    report = json.loads((ROOT / "reports/sample/quality.json").read_text(encoding="utf-8"))
+    source = ROOT / "data/source"
+    for name, digest in report["source_sha256"].items():
+        assert hashlib.sha256((source / name).read_bytes()).hexdigest() == digest
+
+
 def test_quality_report_has_lineage(project):
     report = json.loads((project / "reports/runtime/quality.json").read_text())
     assert report["status"] == "passed"
     assert report["rejected_rows"] > 0
     assert len(report["source_sha256"]["orders.csv"]) == 64
+
+
+def test_sql_supplier_risk_matches_python(project):
+    from analytics.risk import supplier_risk_table
+
+    with closing(sqlite3.connect(project / "data/warehouse/analytics.db")) as db:
+        fact = pd.read_sql_query("SELECT * FROM fact_orders", db)
+        partners = pd.read_sql_query("SELECT * FROM dim_partner", db)
+        actual = pd.read_sql_query("SELECT * FROM mart_supplier_risk", db)
+    expected = supplier_risk_table(fact, partners)
+    compared = expected.merge(actual, on="partner_id", suffixes=("_py", "_sql"))
+    assert len(compared) == len(expected) == len(actual)
+    for column in ["amount_cents", "overdue_cents", "otif_lines", "eligible_lines"]:
+        assert list(compared[f"{column}_py"]) == list(compared[f"{column}_sql"].astype(int))
+    for column in ["falha_otif", "exposicao_vencida", "risk_score"]:
+        py_values = compared[f"{column}_py"]
+        sql_values = compared[f"{column}_sql"]
+        assert list(py_values.isna()) == list(sql_values.isna())
+        pd.testing.assert_series_equal(
+            py_values.fillna(0),
+            sql_values.fillna(0),
+            check_names=False,
+            rtol=1e-9,
+            atol=1e-9,
+        )
+    exported = pd.read_csv(project / "data/pbi/supplier_risk.csv")
+    pd.testing.assert_frame_equal(
+        exported.reset_index(drop=True),
+        expected.reset_index(drop=True),
+        check_dtype=False,
+        rtol=1e-9,
+        atol=1e-9,
+    )
 
 
 def test_reference_metrics_match_sql_and_dataframe(project):

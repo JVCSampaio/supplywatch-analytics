@@ -5,6 +5,15 @@ SELECT partner_name, ROUND(amount_cents/100.0,2) AS contracted_brl,
        ROUND(100*otif_rate,1) AS otif_pct
 FROM mart_partner ORDER BY overdue_cents DESC;
 
+-- Supplier review index. Blank means the supplier has no eligible line or no contracted value.
+-- Formula and weights: analytics/risk.py. Not a probability.
+SELECT partner_name, ROUND(risk_score, 1) AS risk_score,
+       ROUND(100 * falha_otif, 1) AS otif_miss_pct,
+       ROUND(100 * exposicao_vencida, 1) AS overdue_exposure_pct,
+       ROUND(overdue_cents / 100.0, 2) AS overdue_brl
+FROM mart_supplier_risk
+ORDER BY risk_score IS NULL, risk_score DESC, overdue_cents DESC;
+
 -- Prioritize open lines; preserve line IDs for action tracking.
 SELECT * FROM mart_action_queue ORDER BY overdue_cents DESC LIMIT 20;
 

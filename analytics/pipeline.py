@@ -12,6 +12,7 @@ from pathlib import Path
 import pandas as pd
 from analytics.io import read_events, read_partners, require_columns
 from analytics.domain import transform, describe, AS_OF
+from analytics.risk import write_supplier_risk
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -102,6 +103,7 @@ def run(root=ROOT, api_base_url=None, max_reject_rate=0.03):
     exports.mkdir(parents=True, exist_ok=True)
     for name, frame in {**tables, "mart_monthly": monthly, "mart_partner": partner_mart}.items():
         frame.to_csv(exports / (name + ".csv"), index=False, encoding="utf-8")
+    write_supplier_risk(root, fact, partners)
     summary = describe(fact, partner_mart, monthly, report_dir)
     (report_dir / "executive_summary.md").write_text(summary, encoding="utf-8")
     print(json.dumps(quality, indent=2))
