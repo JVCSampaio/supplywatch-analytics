@@ -31,6 +31,8 @@ O segmentador de fornecedor filtra pedidos. Estoque é por produto e almoxarifad
 
 Valor contratado, OTIF %, saldo vencido e pedidos ativos repetem `reports/sample/metrics.json`. Fill rate e ruptura não estão naquele arquivo: são medidas deste projeto.
 
+Sem segmentador, 12 fornecedores têm índice. O maior é Fornecedor 08 com índice 57,4. A tabela completa está em `data/pbi/supplier_risk.csv`. O motor do Power BI Desktop não executou a medida.
+
 ## Definições
 
 | Medida | Pasta | Fórmula DAX | O que responde |
@@ -44,6 +46,7 @@ Valor contratado, OTIF %, saldo vencido e pedidos ativos repetem `reports/sample
 | Lead time completo | Pedidos | `AVERAGE(fact_orders[Lead time (dias)])` | Média de dias entre o pedido e o último recebimento. Só entra linha recebida por completo. Há viés de sobrevivência. |
 | Pedidos ativos | Pedidos | `CALCULATE(DISTINCTCOUNT(fact_orders[Pedido]), KEEPFILTERS(fact_orders[Status] = "ordered"))` | Pedidos distintos com status ordered. Cancelados não entram. |
 | Participação fornecedor % | Pedidos | `DIVIDE([Valor contratado], CALCULATE([Valor contratado], ALLSELECTED(dim_partner)))` | Valor do fornecedor dividido pelo valor contratado no universo selecionado de fornecedores. |
+| Risco do fornecedor | Pedidos | `VAR Falha = IF(ISBLANK([OTIF %]), BLANK(), 1 - [OTIF %]) VAR Exposicao = DIVIDE([Saldo vencido], [Valor contratado]) RETURN IF(OR(ISBLANK(Falha), ISBLANK(Exposicao)), BLANK(), 100 * (0.5 * Falha + 0.5 * Exposicao))` | Índice de 0 a 100 para priorizar revisão do fornecedor no filtro atual. Metade do peso é a falha de OTIF, isto é 1 menos OTIF %. A outra metade é o saldo vencido dividido pelo valor contratado. Fica em branco sem linha elegível ou sem valor contratado. Não é probabilidade, score de crédito nem criticidade de material. |
 | Quantidade pedida | Pedidos | `CALCULATE(SUM(fact_orders[Qtd pedida]), KEEPFILTERS(fact_orders[Status] = "ordered"))` | Soma da quantidade pedida nas linhas ativas. É o denominador do fill rate. |
 | Quantidade recebida | Pedidos | `CALCULATE(SUM(fact_orders[Qtd recebida]), KEEPFILTERS(fact_orders[Status] = "ordered"))` | Soma da quantidade recebida nas linhas ativas, com ou sem atraso. É o numerador do fill rate. |
 | Fill rate % | Pedidos | `DIVIDE([Quantidade recebida], [Quantidade pedida])` | Quantidade recebida dividida pela quantidade pedida, só em linhas ativas. Não exige pontualidade. É diferente do OTIF, que é por linha e exige o prazo. |

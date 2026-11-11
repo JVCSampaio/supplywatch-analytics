@@ -38,6 +38,10 @@ Pedidos ativos = CALCULATE(DISTINCTCOUNT(fact_orders[Pedido]), KEEPFILTERS(fact_
 Participação fornecedor % = DIVIDE([Valor contratado], CALCULATE([Valor contratado], ALLSELECTED(dim_partner)))
 
 // fact_orders / Pedidos
+// Índice de 0 a 100 para priorizar revisão do fornecedor no filtro atual. Metade do peso é a falha de OTIF, isto é 1 menos OTIF %. A outra metade é o saldo vencido dividido pelo valor contratado. Fica em branco sem linha elegível ou sem valor contratado. Não é probabilidade, score de crédito nem criticidade de material.
+Risco do fornecedor = VAR Falha = IF(ISBLANK([OTIF %]), BLANK(), 1 - [OTIF %]) VAR Exposicao = DIVIDE([Saldo vencido], [Valor contratado]) RETURN IF(OR(ISBLANK(Falha), ISBLANK(Exposicao)), BLANK(), 100 * (0.5 * Falha + 0.5 * Exposicao))
+
+// fact_orders / Pedidos
 // Soma da quantidade pedida nas linhas ativas. É o denominador do fill rate.
 Quantidade pedida = CALCULATE(SUM(fact_orders[Qtd pedida]), KEEPFILTERS(fact_orders[Status] = "ordered"))
 

@@ -39,6 +39,7 @@ O Power Query converte datas para tipo date e dinheiro inteiro para Int64 antes 
 | Saldo vencido | Saldo aberto onde prazo ≤ corte | Não é perda realizada |
 | Lead time completo | Média dos dias da ordem ao último recebimento | Só linhas integralmente recebidas; há viés de sobrevivência |
 | Participação fornecedor | Valor fornecedor / valor no universo selecionado | Percentual recalculado no contexto |
+| Risco do fornecedor | 100 * (0,5 * (1 - OTIF) + 0,5 * saldo vencido / valor contratado) | Em branco sem linha elegível ou sem valor contratado. Índice de prioridade, não probabilidade. Pesos iguais e explícitos, não ajustados |
 
 ## Controles de qualidade
 

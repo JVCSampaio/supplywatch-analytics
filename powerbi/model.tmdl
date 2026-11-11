@@ -244,6 +244,10 @@ createOrReplace
 				formatString: 0.0%
 				displayFolder: Indicadores
 
+			measure 'Risco do fornecedor' = VAR Falha = IF(ISBLANK([OTIF %]), BLANK(), 1 - [OTIF %]) VAR Exposicao = DIVIDE([Saldo vencido], [Valor contratado]) RETURN IF(OR(ISBLANK(Falha), ISBLANK(Exposicao)), BLANK(), 100 * (0.5 * Falha + 0.5 * Exposicao))
+				formatString: 0.0
+				displayFolder: Indicadores
+
 			partition fact_orders = m
 				mode: import
 				source =

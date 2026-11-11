@@ -152,9 +152,12 @@ def _executive(frames, orders, inventory):
 def _suppliers(frames, orders):
     fig = new_figure(
         "SupplyWatch  |  Fornecedores",
-        "Sem segmentador. OTIF inclui linha vencida sem entrega. Saldo vencido não é perda realizada.",
+        "Sem segmentador. OTIF inclui linha vencida sem entrega. O risco combina essa falha com o saldo vencido.",
     )
     summary = supplier_summary(frames["orders"], frames["partners"])
+    summary = summary.sort_values(
+        ["risk_score", "saldo_vencido"], ascending=[False, False], na_position="last"
+    )
     gs = fig.add_gridspec(2, 2, height_ratios=[1.2, 1], left=0.12, right=0.98, top=0.88, bottom=0.08, hspace=0.35, wspace=0.25)
     by_otif = summary.sort_values("otif")
     ax = fig.add_subplot(gs[0, 0])
@@ -168,24 +171,25 @@ def _suppliers(frames, orders):
     ax.set_xlabel("dias", color=MUTED)
     ax = fig.add_subplot(gs[1, :])
     ax.set_axis_off()
-    ax.set_title("Fila de ação por saldo vencido", loc="left", color=INK, fontsize=11)
+    ax.set_title("Fila de revisão por risco do fornecedor", loc="left", color=INK, fontsize=11)
     shown = summary.head(8)
     cells = []
     for row in shown.itertuples(index=False):
+        score = "branco" if pd.isna(row.risk_score) else format_num(row.risk_score)
         cells.append(
             [
                 row.partner_name,
                 row.region,
+                score,
                 format_pct(row.otif),
                 format_pct(row.fill_rate),
-                format_num(row.lead_time),
                 format_brl(row.saldo_vencido),
                 format_pct(row.participacao),
             ]
         )
     table = ax.table(
         cellText=cells,
-        colLabels=["Fornecedor", "UF", "OTIF %", "Fill rate %", "Lead time", "Saldo vencido", "Participação"],
+        colLabels=["Fornecedor", "UF", "Risco", "OTIF %", "Fill rate %", "Saldo vencido", "Participação"],
         loc="upper center",
         cellLoc="left",
     )

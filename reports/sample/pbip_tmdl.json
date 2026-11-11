@@ -3,7 +3,7 @@
   "tmdl_parse": "passed",
   "tables": 6,
   "relationships": 7,
-  "measures": 22,
+  "measures": 23,
   "date_table": "dim_date",
   "data_folder_parameter": "DataFolder",
   "dax_execution": "not_run",

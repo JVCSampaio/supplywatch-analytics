@@ -24,6 +24,7 @@ from analytics.pbi_export import (  # noqa: E402
     order_kpis,
 )
 from analytics.domain import AS_OF  # noqa: E402
+from analytics.risk import dax_expression  # noqa: E402
 
 PBIP = ROOT / "SupplyWatch.pbip"
 MODEL = ROOT / "SupplyWatch.SemanticModel"
@@ -155,6 +156,14 @@ MEASURES = [
         "0.0%",
         "Pedidos",
         "Valor do fornecedor dividido pelo valor contratado no universo selecionado de fornecedores.",
+    ),
+    measure(
+        "fact_orders",
+        "Risco do fornecedor",
+        dax_expression(),
+        "0.0",
+        "Pedidos",
+        "Índice de 0 a 100 para priorizar revisão do fornecedor no filtro atual. Metade do peso é a falha de OTIF, isto é 1 menos OTIF %. A outra metade é o saldo vencido dividido pelo valor contratado. Fica em branco sem linha elegível ou sem valor contratado. Não é probabilidade, score de crédito nem criticidade de material.",
     ),
     measure(
         "fact_orders",
@@ -746,7 +755,12 @@ def build_pages():
     fornecedores.add("titulo", textbox("SupplyWatch  |  Fornecedores"), 12, 8, 620, 28)
     fornecedores.add(
         "aviso",
-        textbox("OTIF inclui linha vencida sem entrega. Saldo vencido não é perda realizada.", "12px", "#5C6B7A", False),
+        textbox(
+            "OTIF inclui linha vencida sem entrega. O risco combina essa falha com o saldo vencido.",
+            "12px",
+            "#5C6B7A",
+            False,
+        ),
         640,
         10,
         628,
@@ -790,11 +804,12 @@ def build_pages():
     fornecedores.add(
         "tabela-fornecedor",
         table(
-            "Fila de ação por saldo vencido",
+            "Fila de revisão por risco do fornecedor",
             [
                 ("column", "dim_partner", "Fornecedor"),
                 ("column", "dim_partner", "UF"),
                 ("column", "dim_partner", "Segmento"),
+                ("measure", "fact_orders", "Risco do fornecedor"),
                 ("measure", "fact_orders", "Valor contratado"),
                 ("measure", "fact_orders", "OTIF %"),
                 ("measure", "fact_orders", "Fill rate %"),
@@ -806,7 +821,7 @@ def build_pages():
             ],
             "measure",
             "fact_orders",
-            "Saldo vencido",
+            "Risco do fornecedor",
             "Descending",
         ),
         12,
@@ -1161,6 +1176,24 @@ def file_sha256(path):
     return digest.hexdigest()
 
 
+def supplier_risk_manifest():
+    import pandas as pd
+
+    path = DATA / "supplier_risk.csv"
+    frame = pd.read_csv(path)
+    scored = frame.loc[frame.risk_score.notna()]
+    top = scored.iloc[0]
+    return {
+        "rows": int(len(frame)),
+        "scored": int(len(scored)),
+        "blank": int(frame.risk_score.isna().sum()),
+        "highest_partner": str(top.partner_name),
+        "highest_score": float(top.risk_score),
+        "sha256": file_sha256(path),
+        "note": "Índice por fornecedor na amostra sintética, sem segmentador. Não é média da carteira nem probabilidade.",
+    }
+
+
 def write_manifest(frames, orders, inventory):
     files = {}
     for spec in tables():
@@ -1173,6 +1206,7 @@ def write_manifest(frames, orders, inventory):
         "label": "Dados sintéticos. Pedidos vêm do pipeline com semente 42. Almoxarifado do pedido e estoque foram gerados à parte, com a mesma semente.",
         "orders": orders,
         "inventory": inventory,
+        "supplier_risk": supplier_risk_manifest(),
         "files": files,
     }
     write_json(DATA / "manifest.json", payload)
@@ -1180,6 +1214,17 @@ def write_manifest(frames, orders, inventory):
 
 
 def write_dictionary(orders, inventory):
+    import pandas as pd
+
+    risk = pd.read_csv(DATA / "supplier_risk.csv")
+    scored = risk.loc[risk.risk_score.notna()]
+    top = scored.iloc[0]
+    risk_sentence = (
+        f"Sem segmentador, {len(scored)} fornecedores têm índice. "
+        f"O maior é {top.partner_name} com índice {format_num(top.risk_score)}. "
+        "A tabela completa está em `data/pbi/supplier_risk.csv`. "
+        "O motor do Power BI Desktop não executou a medida."
+    )
     lines = [
         "# Dicionário de medidas",
         "",
@@ -1217,6 +1262,8 @@ def write_dictionary(orders, inventory):
         f"| Quantidade não atendida total | {format_num(inventory['quantidade_nao_atendida'], 0)} |",
         "",
         "Valor contratado, OTIF %, saldo vencido e pedidos ativos repetem `reports/sample/metrics.json`. Fill rate e ruptura não estão naquele arquivo: são medidas deste projeto.",
+        "",
+        risk_sentence,
         "",
         "## Definições",
         "",
@@ -1257,7 +1304,8 @@ Não são extraídos de uma empresa. A semente é 42 e a posição é 31/12/2025
 - `dim_partner`, `dim_product` e `fact_orders` saem do pipeline de compras, com duas colunas a mais no fato: `warehouse_id` e `situacao`.
 - `warehouse_id` não existe na fonte de pedidos. É atribuição determinística pela semente.
 - `dim_warehouse`, `dim_date` e `fact_inventory` são gerados por `analytics/pbi_export.py`. A foto de estoque não passa pelo pipeline.
-- `manifest.json` guarda contagens, hashes e os totais sem segmentador.
+- `supplier_risk.csv` é o índice de risco por fornecedor, calculado no pipeline. Não é tabela do modelo: a medida DAX recalcula o mesmo índice dentro dos segmentadores.
+- `manifest.json` guarda contagens, hashes, os totais sem segmentador e o maior risco da amostra.
 
 Para gerar de novo, na raiz do repositório:
 
