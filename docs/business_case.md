@@ -44,3 +44,4 @@ O analista facilita a homologação com exemplos pequenos, totais conhecidos e c
 3. Agendamento e alerta de falha; migração de armazenamento somente quando volume/concor­rência justificar.
 4. Controle de acesso por área, testes de atualização Power BI e monitoramento de freshness por fonte.
 5. Acompanhamento de efetividade com entrevistas e tempo para completar tarefas, além de cliques.
+6. Calibrar os pesos do risco do fornecedor com o dono do indicador. Nesta amostra os pesos são iguais e explícitos.

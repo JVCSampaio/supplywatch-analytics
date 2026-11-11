@@ -3,7 +3,7 @@
 This portfolio case study answers a business question using Python, relational SQL and self-service analytics.
 All companies and transactions are synthetic. It does not claim real operational savings or employment experience.
 
-The pipeline reads purchase/sales order lines from CSV, receipts from JSON or a paginated HTTP API,
+The pipeline reads purchase-order lines from CSV, receipts from JSON or a paginated HTTP API,
 and partner master data from an Excel workbook. Invalid records are quarantined with source positions and reasons.
 Invalid child events also quarantine their parent order line, preventing understated or misleading metrics.
 
@@ -31,8 +31,8 @@ The demo API is started with `python -m analytics.demo_api`; pass `--api-base-ur
 | Grain | Granularidade | One record per order line |
 | Data quality gate | Controle de qualidade | Prevents publication above an agreed rejection threshold |
 | Lineage | Rastreabilidade | Source hashes and row rejection reasons |
-| Weighted margin | Margem ponderada | Total margin divided by total revenue |
-| Holdout | Amostra de teste | Later observations excluded from training |
+| OTIF | OTIF | Due lines received in full by the due date, divided by due lines |
+| Supplier risk index | Risco do fornecedor | Equal weights on the OTIF miss and the overdue share of contracted value. Blank if either denominator is zero |
 | Self-service | Autosserviço | Governed filtering and exploration without changing business definitions |
 
 This written technical overview is a portfolio artifact; it does not certify the author's spoken English proficiency.

@@ -19,6 +19,18 @@ R$ 39,51 milhões contratados, OTIF de 46,4% e R$ 2,50 milhões de saldo vencido
 Leia o [parecer com recomendações](reports/sample/executive_summary.md) e os [totais de conferência](reports/sample/metrics.json).
 O OTIF inclui linhas vencidas ainda não entregues; o saldo vencido não é tratado como perda realizada.
 
+## Risco do fornecedor
+
+O índice prioriza quem revisar primeiro. Não é probabilidade, score de crédito nem criticidade de material: a amostra não tem esses campos.
+
+`risco = 100 * (0,5 * (1 - OTIF) + 0,5 * saldo vencido / valor contratado)`
+
+OTIF é a mesma razão do restante do projeto: linhas recebidas por completo até o prazo, divididas pelas linhas com prazo até 31/12/2025. O saldo vencido e o valor contratado vêm das colunas da fato. Os dois pesos são iguais porque esta amostra não tem uma meta definida por uma área de negócio. A escolha é explícita, não é um modelo ajustado. O índice fica em branco quando não há linha elegível ou quando o valor contratado é zero. Pedido ainda não vencido não aparece como risco baixo.
+
+Na amostra sintética, semente 42, posição 31/12/2025, sem filtro, os 12 fornecedores têm índice. O maior é Fornecedor 08 com índice 57,4. Depois vêm Fornecedor 04 com índice 56,5 e Fornecedor 12 com índice 54,0. O seguinte é Fornecedor 03 com índice 26,6. Fornecedor 04, 08 e 12 são atrasados de propósito pelo gerador, porque o número do fornecedor é múltiplo de 4. O topo do ranking é efeito da semente, não resultado de uma operação real.
+
+A tabela está em [data/pbi/supplier_risk.csv](data/pbi/supplier_risk.csv). A view `mart_supplier_risk` repete a conta no SQLite. No Streamlit, a lista de fornecedores ordena por esse índice dentro do recorte filtrado. A medida DAX `Risco do fornecedor` usa a mesma fórmula e respeita os segmentadores. O parser TMDL carregou a medida. O motor do Power BI Desktop não a executou.
+
 ## Executar em cinco minutos
 
 Pré-requisito: Python 3.12. Os dados de demonstração já estão no repositório.
