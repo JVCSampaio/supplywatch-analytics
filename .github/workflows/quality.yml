@@ -6,24 +6,24 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
           cache: pip
-      - run: pip install -r requirements.txt
-      - run: ruff check .
+      - run: python -m pip install -r requirements.txt
+      - run: python -m ruff check .
       - run: python -m analytics.pipeline
-      - run: pytest -q
-      - uses: actions/upload-artifact@v4
+      - run: python -m pytest -q
+      - uses: actions/upload-artifact@v7
         with:
           name: quality-and-analysis
           path: reports/runtime/
   powerbi-model:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '8.0.x'
       - run: dotnet run --project tools/pbi-validator -- .
